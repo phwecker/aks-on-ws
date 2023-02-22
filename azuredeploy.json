@@ -43,7 +43,7 @@
         },
         "virtualMachineSize": {
             "type": "string",
-            "defaultValue": "Standard_E16s_v4",
+            "defaultValue": "Standard_D16s_v3",
             "allowedValues": [
                 "Standard_D16s_v3",
                 "Standard_D32s_v3",
@@ -342,7 +342,7 @@
         }
     },
     "variables": {
-        "templateBaseUrl": "https://raw.githubusercontent.com/pabloameijeirascanay/aks-on-ws/main/",
+        "templateBaseUrl": "https://raw.githubusercontent.com/phwecker/aks-on-ws/main/",
         // "templateBaseUrl": "[concat('https://raw.githubusercontent.com/', parameters('githubAccount'), '/azure_arc/', parameters('githubBranch'), '/azure_arc_data_jumpstart/kubeadm/azure/ARM/')]",
         "dataDisksCount": 8,
         "dscUri": "https://github.com/Azure/aks-hci/raw/main/eval/dsc/akshcihost.zip",
@@ -350,13 +350,13 @@
         "randomGUID": "[substring(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('virtualMachineName')),0,6)]",
         "dnsNameForPublicIP": "[toLower(concat(parameters('virtualMachineName'), variables('randomGUID')))]",
         "environment": "Workgroup",
-        "virtualNetworkName": "AKSHCILabvNet",
         "networkInterfaceName": "AKSHCILabNIC1",
         "networkSecurityGroupName": "AKSHCILabNSG",
-        "addressPrefix": "10.0.0.0/16",
-        "privateIPAddress": "10.0.0.4",
-        "subnetName": "AKSHCILabSubnet",
-        "subnetPrefix": "10.0.0.0/24",
+        "virtualNetworkName": "vnet-aks-appsvc",
+        "addressPrefix": "10.0.6.0/23",
+        "privateIPAddress": "10.0.7.4",
+        "subnetName": "cluster",
+        "subnetPrefix": "10.0.7.0/24",
         "publicIpAddressName": "AKSHCILabPubIP",
         "publicIpAddressType": "Dynamic",
         "publicIpAddressSku": "Basic",
@@ -381,42 +381,42 @@
                 }
             }
         },
-        {
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "name": "[variables('virtualNetworkName')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[uri(variables('artifactsLocation'), concat('json/vnet.json'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "virtualNetworkName": {
-                        "value": "[variables('virtualNetworkName')]"
-                    },
-                    "virtualNetworkAddressRange": {
-                        "value": "[variables('addressPrefix')]"
-                    },
-                    "subnetName": {
-                        "value": "[variables('subnetName')]"
-                    },
-                    "subnetRange": {
-                        "value": "[variables('subnetPrefix')]"
-                    },
-                    "location": {
-                        "value": "[resourceGroup().location]"
-                    }
-                }
-            }
-        },
+        // {
+        //     "type": "Microsoft.Resources/deployments",
+        //     "apiVersion": "2021-04-01",
+        //     "name": "[variables('virtualNetworkName')]",
+        //     "properties": {
+        //         "mode": "Incremental",
+        //         "templateLink": {
+        //             "uri": "[uri(variables('artifactsLocation'), concat('json/vnet.json'))]",
+        //             "contentVersion": "1.0.0.0"
+        //         },
+        //         "parameters": {
+        //             "virtualNetworkName": {
+        //                 "value": "[variables('virtualNetworkName')]"
+        //             },
+        //             "virtualNetworkAddressRange": {
+        //                 "value": "[variables('addressPrefix')]"
+        //             },
+        //             "subnetName": {
+        //                 "value": "[variables('subnetName')]"
+        //             },
+        //             "subnetRange": {
+        //                 "value": "[variables('subnetPrefix')]"
+        //             },
+        //             "location": {
+        //                 "value": "[resourceGroup().location]"
+        //             }
+        //         }
+        //     }
+        // },
         {
             "name": "[variables('networkInterfaceName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-11-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('virtualNetworkName')]",
+                // "[variables('virtualNetworkName')]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
             ],
@@ -609,44 +609,44 @@
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
             ]
-        },
-        {
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "name": "[concat(variables('virtualNetworkName'),'-UpdateDNS')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'ConfigureAksHciHost')]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[uri(variables('artifactsLocation'), concat('json/updatevnet.json'))]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "virtualNetworkName": {
-                        "value": "[variables('virtualNetworkName')]"
-                    },
-                    "virtualNetworkAddressRange": {
-                        "value": "[variables('addressPrefix')]"
-                    },
-                    "subnetName": {
-                        "value": "[variables('subnetName')]"
-                    },
-                    "subnetRange": {
-                        "value": "[variables('subnetPrefix')]"
-                    },
-                    "DNSServerAddress": {
-                        "value": [
-                            "[variables('privateIPAddress')]"
-                        ]
-                    },
-                    "location": {
-                        "value": "[resourceGroup().location]"
-                    }
-                }
-            }
         }
+        // ,{
+        //     "type": "Microsoft.Resources/deployments",
+        //     "apiVersion": "2021-04-01",
+        //     "name": "[concat(variables('virtualNetworkName'),'-UpdateDNS')]",
+        //     "dependsOn": [
+        //         "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'ConfigureAksHciHost')]"
+        //     ],
+        //     "properties": {
+        //         "mode": "Incremental",
+        //         "templateLink": {
+        //             "uri": "[uri(variables('artifactsLocation'), concat('json/updatevnet.json'))]",
+        //             "contentVersion": "1.0.0.0"
+        //         },
+        //         "parameters": {
+        //             "virtualNetworkName": {
+        //                 "value": "[variables('virtualNetworkName')]"
+        //             },
+        //             "virtualNetworkAddressRange": {
+        //                 "value": "[variables('addressPrefix')]"
+        //             },
+        //             "subnetName": {
+        //                 "value": "[variables('subnetName')]"
+        //             },
+        //             "subnetRange": {
+        //                 "value": "[variables('subnetPrefix')]"
+        //             },
+        //             "DNSServerAddress": {
+        //                 "value": [
+        //                     "[variables('privateIPAddress')]"
+        //                 ]
+        //             },
+        //             "location": {
+        //                 "value": "[resourceGroup().location]"
+        //             }
+        //         }
+        //     }
+        // }
     ],
     "outputs": {
         "adminUsername": {

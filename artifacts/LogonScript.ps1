@@ -2,6 +2,25 @@ Start-Transcript -Path C:\Temp\LogonScript.log
 
 # Powershell-Cmdlet -Confirm:$false
 
+
+$gatewayIp="10.0.6.193"
+$dnsservers="10.0.6.193" 
+$ipaddressprefix="10.0.6.192/26" 
+$k8snodeippoolstart="10.0.6.194"
+$k8snodeippoolend="10.0.6.204"
+$vipPoolStart="10.0.6.221"
+$vipPoolEnd="10.0.6.230"
+$cloudServiceIP="10.0.6.194"
+
+$k8snodeippoolstart_cc="10.0.6.205"
+$k8snodeippoolend_cc="10.0.6.214"
+$vipPoolStart_cc="10.0.6.221"
+$vipPoolEnd_cc="10.0.6.230"
+
+$k8snodeippoolstart_rb="10.0.6.215"
+$k8snodeippoolend_rb="10.0.6.220"
+$controlPlaneIP="10.0.6.251"
+
 # Login as service principal
 az login --service-principal --username $Env:spnClientId --password $Env:spnClientSecret --tenant $Env:spnTenantId
 
@@ -61,8 +80,8 @@ New-Item -Path "V:\AKS-HCI\" -Name "WorkingDir" -ItemType "directory" -Force
 New-Item -Path "V:\AKS-HCI\" -Name "Config" -ItemType "directory" -Force
 
 # Install the AKS on Windows Server management cluster
-$vnet=New-AksHciNetworkSetting -Name "mgmt-vnet" -vSwitchName "InternalNAT" -gateway "192.168.0.1" -dnsservers "192.168.0.1" -ipaddressprefix "192.168.0.0/16" -k8snodeippoolstart "192.168.0.4" -k8snodeippoolend "192.168.0.10" -vipPoolStart "192.168.0.150" -vipPoolEnd "192.168.0.160"
-Set-AksHciConfig -vnet $vnet -imageDir "V:\AKS-HCI\Images" -workingDir "V:\AKS-HCI\WorkingDir" -cloudConfigLocation "V:\AKS-HCI\Config" -version $aksHciConfigVersion -cloudServiceIP "192.168.0.4"
+$vnet=New-AksHciNetworkSetting -Name "mgmt-vnet" -vSwitchName "InternalNAT" -gateway $gatewayIp -dnsservers $dnsservers -ipaddressprefix $ipaddressprefix -k8snodeippoolstart $k8snodeippoolstart -k8snodeippoolend $k8snodeippoolend -vipPoolStart $vipPoolStart -vipPoolEnd $vipPoolEnd
+Set-AksHciConfig -vnet $vnet -imageDir "V:\AKS-HCI\Images" -workingDir "V:\AKS-HCI\WorkingDir" -cloudConfigLocation "V:\AKS-HCI\Config" -version $aksHciConfigVersion -cloudServiceIP $couldServiceIP
 
 $SecuredPassword = ConvertTo-SecureString $Env:spnClientSecret -AsPlainText -Force
 $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Env:spnClientId, $SecuredPassword
@@ -72,7 +91,7 @@ Set-AksHciRegistration -TenantId $Env:spnTenantId -SubscriptionId $Env:subscript
 Install-AksHci
 
 # Generate pre-requisite YAML files needed to deploy Azure Arc Resource Bridge
-New-ArcHciAksConfigFiles -subscriptionID $Env:subscriptionId -location $Env:location -resourceGroup $Env:resourceGroup -resourceName $arcAppName -workDirectory $workingDir -vnetName "appliance-vnet" -vSwitchName "InternalNAT" -gateway "192.168.0.1" -dnsservers "192.168.0.1" -ipaddressprefix "192.168.0.0/16" -k8snodeippoolstart "192.168.0.11" -k8snodeippoolend "192.168.0.11" -controlPlaneIP "192.168.0.161"
+New-ArcHciAksConfigFiles -subscriptionID $Env:subscriptionId -location $Env:location -resourceGroup $Env:resourceGroup -resourceName $arcAppName -workDirectory $workingDir -vnetName "appliance-vnet" -vSwitchName "InternalNAT" -gateway $gatewayIp -dnsservers $dnsservers -ipaddressprefix $ipaddressprefix -k8snodeippoolstart $k8snodeippoolstart_rb -k8snodeippoolend $k8snodeippoolend_rb -controlPlaneIP $controlPlaneIP
 
 # Deploy Azure Arc Resource Bridge
 az arcappliance validate hci --config-file $configFilePath
@@ -114,7 +133,7 @@ Do {
 } while ($state -eq "Nope")
 
 # Create a local network for AKS hybrid clusters and connect it to Azure
-New-KvaVirtualNetwork -name hybridaks-vnet -vSwitchName "InternalNAT" -gateway "192.168.0.1" -dnsservers "192.168.0.1" -ipaddressprefix "192.168.0.0/16" -k8snodeippoolstart "192.168.0.15" -k8snodeippoolend "192.168.0.25" -vipPoolStart "192.168.0.162" -vipPoolEnd "192.168.0.170" -kubeconfig $workingDir\config
+New-KvaVirtualNetwork -name hybridaks-vnet -vSwitchName "InternalNAT" -gateway $gatewayIp -dnsservers $dnsservers -ipaddressprefix $ipaddressprefix -k8snodeippoolstart $k8snodeippoolstart_cc -k8snodeippoolend $k8snodeippoolend_cc -vipPoolStart $vipPoolStart_cc -vipPoolEnd $vipPoolEnd_cc -kubeconfig $workingDir\config
 $clid = az customlocation show --name $customLocationName --resource-group $Env:resourceGroup --query "id" -o tsv
 az hybridaks vnet create -n "azvnet" -g $Env:resourceGroup --custom-location $clId --moc-vnet-name "hybridaks-vnet"
 $vnetId = az hybridaks vnet show -n "azvnet" -g $Env:resourceGroup --query id -o tsv
