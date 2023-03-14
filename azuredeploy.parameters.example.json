@@ -5,6 +5,9 @@
     "virtualMachineName": {
       "value": "AKSHCIHost001"
     },
+    "privateIPAddress": {
+      "value": "10.52.103.4"
+    },
     "spnClientId": {
       "value": "XXXXX-XXXXX-XXXXX"
     },

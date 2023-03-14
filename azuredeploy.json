@@ -41,6 +41,13 @@
                 "description": "Keep the VM name to less than 15 characters"
             }
         },
+        "privateIPAddress": {
+            "type": "string",
+            "defaultValue": "10.52.103.4",
+            "metadata": {
+                "description": "Set the private IP of the cluster host machine"
+            }
+        },
         "virtualMachineSize": {
             "type": "string",
             "defaultValue": "Standard_D16s_v3",
@@ -354,7 +361,6 @@
         "networkSecurityGroupName": "AKSHCILabNSG",
         "virtualNetworkName": "vnet-evnk8s-dev-001",
         "addressPrefix": "10.52.103.0/24",
-        "privateIPAddress": "10.52.103.4",
         "subnetName": "cluster",
         "subnetPrefix": "10.52.103.0/26",
         "publicIpAddressName": "AKSHCILabPubIP",
@@ -429,7 +435,7 @@
                                 "id": "[variables('subnetRef')]"
                             },
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[variables('privateIPAddress')]",
+                            "privateIPAddress": "[parameters('privateIPAddress')]",
                             "publicIpAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
                             }
