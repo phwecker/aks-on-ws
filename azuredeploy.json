@@ -366,27 +366,30 @@
         "publicIpAddressName": "AKSHCILabPubIP",
         "publicIpAddressType": "Dynamic",
         "publicIpAddressSku": "Basic",
-        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        // "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "subId": "",
+        "vnetRgName": "",
+        "vnetId": "[resourceId(variables('subId'), variables('vnetRgName'),'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
         "vmSkuGen1": "[if(equals(parameters('virtualMachineOS'), 'Windows Server 2022'), '2022-datacenter', '2019-datacenter')]",
         "vmSkuGen2": "[if(equals(parameters('virtualMachineOS'), 'Windows Server 2022'), '2022-datacenter-g2', '2019-datacenter-gensecond')]"
     },
     "resources": [
-        {
-            "name": "[variables('publicIpAddressName')]",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "2020-11-01",
-            "location": "[resourceGroup().location]",
-            "sku": {
-                "name": "[variables('publicIpAddressSku')]"
-            },
-            "properties": {
-                "publicIpAllocationMethod": "[variables('publicIpAddressType')]",
-                "dnsSettings": {
-                    "domainNameLabel": "[variables('dnsNameForPublicIP')]"
-                }
-            }
-        },
+        // {
+        //     "name": "[variables('publicIpAddressName')]",
+        //     "type": "Microsoft.Network/publicIpAddresses",
+        //     "apiVersion": "2020-11-01",
+        //     "location": "[resourceGroup().location]",
+        //     "sku": {
+        //         "name": "[variables('publicIpAddressSku')]"
+        //     },
+        //     "properties": {
+        //         "publicIpAllocationMethod": "[variables('publicIpAddressType')]",
+        //         "dnsSettings": {
+        //             "domainNameLabel": "[variables('dnsNameForPublicIP')]"
+        //         }
+        //     }
+        // },
         // {
         //     "type": "Microsoft.Resources/deployments",
         //     "apiVersion": "2021-04-01",
@@ -423,7 +426,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 // "[variables('virtualNetworkName')]",
-                "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
+                // "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
             ],
             "properties": {
@@ -435,10 +438,11 @@
                                 "id": "[variables('subnetRef')]"
                             },
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('privateIPAddress')]",
-                            "publicIpAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
-                            }
+                            "privateIPAddress": "[parameters('privateIPAddress')]"
+                            // ,
+                            // "publicIpAddress": {
+                            //     "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+                            // }
                         }
                     }
                 ],
@@ -662,10 +666,11 @@
         "rdpPort": {
             "type": "string",
             "value": "[parameters('customRdpPort')]"
-        },
-        "fqdn": {
-            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))).dnsSettings.fqdn]",
-            "type": "string"
         }
+        // ,
+        // "fqdn": {
+        //     "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))).dnsSettings.fqdn]",
+        //     "type": "string"
+        // }
     }
 }

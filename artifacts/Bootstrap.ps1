@@ -54,7 +54,7 @@ Start-Transcript "C:\Temp\Bootstrap.log"
 $ErrorActionPreference = 'SilentlyContinue'
 
 # Downloading GitHub artifacts for DataServicesLogonScript.ps1
-Invoke-WebRequest ($templateBaseUrl + "artifacts/LogonScript.ps1") -OutFile "C:\Temp\LogonScript.ps1"
+# Invoke-WebRequest ($templateBaseUrl + "artifacts/LogonScript.ps1") -OutFile "C:\Temp\LogonScript.ps1"
 
 Installing tools
 workflow ClientTools_01
